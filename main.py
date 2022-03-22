@@ -1,68 +1,43 @@
-import random
 import os
+from interface import Interface
+from user import User
+from attempt import Attempt
 
-def read():
-    words = dict()
-    with open('./File/data.txt','r',encoding='utf-8') as f:
-        for number, word in enumerate(f, 1):
-            words[number] = word.strip()
-    return words
+def play():
+    #Player
+    name = input('Write your name: ')
+    name = str(name)
+    user = User(name)
 
-def randomNumber(dict: dict):
-    n = random.randint(1, len(dict))
-    word = dict.get(n)
-    return word
+    #Game
+    game = Attempt()
+    words = game.read()
+    word = game.randomNumber(words)
+    word = game.replaceChars(word)
+    word2Find, list_word = game.mysteryWord(word)
+    live = getattr(game, 'lives')
 
-def replaceChars(word: str):
-    nword = word.maketrans('áéíóú', 'aeiou')
-    newWord = word.translate(nword)
-    return newWord
-
-def mysteryWord(word: str):
-    dashWord = ['-' for i in range(len(word))]
-    newWord = ''.join(dashWord)
-    return newWord, dashWord
-
-def replaceChar(char: str, word: str, dashWord: list):
-    start = 0
-    for i in word:
-        if i == char:
-            index = word.index(char, start)
-            start = index + 1
-            dashWord[index] = char
-    dashWord = ''.join(dashWord)
-    if word.find(char) == -1: life = 1
-    else: life = 0
-    return dashWord, life
-
-def lives(live: int, chance: int):
-    live -= chance
-    return live
-
-def run():
-    words = read()
-    word = randomNumber(words)
-    word = replaceChars(word)
-    word2Find, list_word = mysteryWord(word)
-    live = 5
+    #Interface
+    interface = Interface()
     
     while True:
         os.system('clear')
+        print('{} is playing'.format(getattr(user, 'name')))
         print(word2Find)
+        interface.hangman(live)
+
         if live == 0:
-            print('You lose, the word was {}'.format(word))
+            print('{}, the word was {}'.format(getattr(user, 'name') ,word))
             break
         elif word == word2Find:
-            print('You won')
+            print('{} won!'.format(getattr(user, 'name')))
             break
         else:
             print('{} lives left'.format(live))
         char = input('Enter a letter: ')
         char = char.lower()
-        word2Find, chance = replaceChar(char, word, list_word)
-        live = lives(live, chance)
-        
-        
-   
+        word2Find, chance = game.replaceChar(char, word, list_word)
+        live = game.userLives(live,chance)
+         
 if __name__ == '__main__':
-    run()
+    play()
